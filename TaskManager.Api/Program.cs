@@ -8,19 +8,16 @@ using TaskManager.Shared.Models;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// Configuração do banco de dados
 builder.Services.AddDbContext<TaskContext>(options =>
 {
     _ = options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
-// Configuração de Repositórios
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 
-// Configuração do TokenService para autenticação JWT
 builder.Services.AddScoped<TokenService>();
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
-// Configuração de Autenticação JWT
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -36,12 +33,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Configuração de controladores e Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configuração de CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins", policy =>
@@ -56,7 +51,6 @@ WebApplication app = builder.Build();
 
 app.UseCors("AllowAllOrigins");
 
-// Configuração de middleware para ambiente de desenvolvimento
 if (app.Environment.IsDevelopment())
 {
     _ = app.UseSwagger();
@@ -69,11 +63,9 @@ app.MapGet("/", (HttpContext context) =>
     return Task.CompletedTask;
 });
 
-// Configuração de middleware de autenticação e autorização
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Mapeamento de controladores
 app.MapControllers();
 
 app.Run();

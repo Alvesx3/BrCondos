@@ -16,7 +16,6 @@ namespace TaskManager.Client
             _ = builder.Services.AddScoped<AuthenticationStateProviderService>();
             _ = builder.Services.AddBlazoredLocalStorage();
 
-            // Configurar o HttpClient para a API backend
             _ = builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7160") });
 
             _ = builder.Services.AddAuthorizationCore();

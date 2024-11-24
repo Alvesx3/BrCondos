@@ -16,7 +16,7 @@ public class TokenService
 
     public TokenModel GenerateToken(string username)
     {
-        JwtSecurityTokenHandler tokenHandler = new(); // Instância do handler
+        JwtSecurityTokenHandler tokenHandler = new();
         JwtSecurityToken token = new(
             issuer: _jwtSettings.Issuer,
             audience: _jwtSettings.Audience,

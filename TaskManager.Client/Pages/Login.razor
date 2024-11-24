@@ -43,7 +43,6 @@
             var token = await resultado.Content.ReadFromJsonAsync<TokenModel>();
             await AuthenticationStateProviderService.MarkUserAsAuthenticated(token);
 
-            // Configurar o token no TarefaService
             TarefaService.SetAuthorizationToken(token.Token);
 
             NavigationManager.NavigateTo("/tarefa");

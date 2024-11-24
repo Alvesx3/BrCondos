@@ -12,18 +12,6 @@ public class AuthenticationStateProviderService : AuthenticationStateProvider
         _localStorage = localStorage;
     }
 
-    //public override async Task<AuthenticationState> GetAuthenticationStateAsync()
-    //{
-    //    var tokenModel = await _localStorage.GetItemAsync<TokenModel>("token");
-
-    //    if (tokenModel != null && tokenModel.Expiracao > DateTime.UtcNow)
-    //    {
-    //        return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, tokenModel.Token) }, "jwt")));
-    //    }
-
-    //    return new AuthenticationState(new ClaimsPrincipal());
-    //}
-
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         TokenModel? tokenModel = await _localStorage.GetItemAsync<TokenModel>("token");
