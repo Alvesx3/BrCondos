@@ -96,3 +96,6 @@ TaskManager/
 │   ├── Services/         # Lógica de negócios
 │   └── appsettings.json  # Configurações da aplicação
 └── README.md             # Documentação do projeto
+### LoginFixo
+Usuário = user
+Senha = password
