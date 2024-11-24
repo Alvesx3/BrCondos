@@ -1,0 +1,97 @@
+﻿@page "/tarefa"
+@inject Services.TarefaService TarefaService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProviderService AuthenticationStateProvider
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@using TaskManager.Shared.Models
+
+<h1>Lista de Tarefas</h1>
+
+@if (IsLoading)
+{
+    <p>Carregando...</p>
+}
+else if (!IsAuthenticated)
+{
+    <p>Você não está autenticado. Redirecionando...</p>
+}
+else if (Tarefa != null && Tarefa.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th hidden>Id</th>
+                <th>Título</th>
+                <th>Descrição</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var tarefa in Tarefa)
+            {
+                <tr>
+                    <td hidden>@tarefa.Id</td>
+                    <td>@tarefa.Title</td>
+                    <td>@tarefa.Description</td>
+                    <td>@tarefa.Status</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => EditarTarefa(tarefa.Id)">Editar</button>
+                        <button class="btn btn-danger" @onclick="() => DeletarTarefa(tarefa.Id)">Deletar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button class="btn btn-success" @onclick="CriarTarefa">Nova Tarefa</button>
+}
+else
+{
+    <p>Não há tarefas disponíveis.</p>
+    <button class="btn btn-success" @onclick="CriarTarefa">Nova Tarefa</button>
+}
+
+@code {
+    private List<Tarefas> Tarefa { get; set; } = new();
+    private bool IsAuthenticated { get; set; }
+    private bool IsLoading { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        if (!user?.Identity?.IsAuthenticated ?? false)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        var token = await LocalStorage.GetItemAsync<TokenModel>("token");
+        if (token != null)
+        {
+            TarefaService.SetAuthorizationToken(token.Token);
+        }
+
+        Tarefa = await TarefaService.GetAllTasksAsync();
+        IsLoading = false;
+        IsAuthenticated = true;
+    }
+
+
+    private async Task EditarTarefa(int id)
+    {
+        NavigationManager.NavigateTo($"/tarefa/{id}");
+    }
+
+    private async Task DeletarTarefa(int id)
+    {
+        await TarefaService.DeleteTaskAsync(id);
+        Tarefa = await TarefaService.GetAllTasksAsync();
+    }
+
+    private void CriarTarefa()
+    {
+        NavigationManager.NavigateTo("/tarefa/0");
+    }
+}

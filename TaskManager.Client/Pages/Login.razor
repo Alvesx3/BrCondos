@@ -1,0 +1,56 @@
+﻿@page "/login"
+@inject Services.LoginService LoginService
+@inject Services.TarefaService TarefaService
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject AuthenticationStateProviderService AuthenticationStateProviderService
+@layout MainLayout
+@using TaskManager.Shared.Models
+
+<h2>Login</h2>
+
+<EditForm Model="@LoginModel" OnValidSubmit="LoginAuth">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="usuario" class="form-label">Usuário</label>
+        <InputText id="usuario" class="form-control" @bind-Value="LoginModel.Username" />
+    </div>
+
+    <div class="mb-3">
+        <label for="senha" class="form-label">Senha</label>
+        <InputText id="senha" class="form-control" type="password" @bind-Value="LoginModel.Password" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Login</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger mt-3">@ErrorMessage</div>
+}
+
+@code {
+    private UserLoginModel LoginModel { get; set; } = new();
+    private string ErrorMessage { get; set; } = string.Empty;
+
+    private async Task LoginAuth()
+    {
+        var resultado = await LoginService.Login(LoginModel.Username, LoginModel.Password);
+        if (resultado.IsSuccessStatusCode)
+        {
+            var token = await resultado.Content.ReadFromJsonAsync<TokenModel>();
+            await AuthenticationStateProviderService.MarkUserAsAuthenticated(token);
+
+            // Configurar o token no TarefaService
+            TarefaService.SetAuthorizationToken(token.Token);
+
+            NavigationManager.NavigateTo("/tarefa");
+        }
+        else
+        {
+            ErrorMessage = "Erro de autenticação. Verifique suas credenciais.";
+        }
+    }
+}

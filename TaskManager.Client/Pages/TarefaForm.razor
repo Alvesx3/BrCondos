@@ -1,0 +1,87 @@
+﻿@page "/tarefa/{Id:int?}"
+@inject Services.TarefaService TarefaService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProviderService AuthenticationStateProvider
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@using TaskManager.Shared.Models
+@using TaskManager.Shared.Models.Enum
+
+<EditForm Model="@Tarefa" OnValidSubmit="SalvarTarefa">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="titulo" class="form-label">Título</label>
+        <InputText id="titulo" class="form-control" @bind-Value="Tarefa.Title" />
+    </div>
+
+    <div class="mb-3">
+        <label for="descricao" class="form-label">Descrição</label>
+        <InputTextArea id="descricao" class="form-control" @bind-Value="Tarefa.Description" />
+    </div>
+
+    <div class="mb-3">
+        <label for="status" class="form-label">Status</label>
+        <select id="status" class="form-select" @bind="Tarefa.Status">
+            @foreach (var status in Enum.GetNames(typeof(Status)))
+            {
+                <option value="@status">@status</option>
+            }
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Salvar</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private Tarefas Tarefa { get; set; } = new Tarefas();
+    private bool IsAuthenticated { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        IsAuthenticated = user?.Identity?.IsAuthenticated ?? false;
+        if (!IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+
+        var token = await LocalStorage.GetItemAsync<TokenModel>("token");
+        if (token != null)
+        {
+            TarefaService.SetAuthorizationToken(token.Token);  
+        }
+
+   
+        if (Id.HasValue && Id != 0)
+        {
+            Tarefa = await TarefaService.GetTaskByIdAsync(Id.Value);
+        }
+    }
+
+    private async Task SalvarTarefa()
+    {
+        if (!IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        if (Id.HasValue && Id != 0)
+        {
+            await TarefaService.UpdateTaskAsync(Tarefa);  
+        }
+        else
+        {
+            await TarefaService.AddTaskAsync(Tarefa);  
+        }
+        NavigationManager.NavigateTo("/tarefa");  
+    }
+}
